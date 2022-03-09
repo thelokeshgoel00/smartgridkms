@@ -1,24 +1,33 @@
-import logo from './logo.svg';
 import './App.css';
+import AddConsumer from './Components/AddConsumer/AddConsumer';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import DeleteConsumer from './Components/DeleteConsumer/DeleteConsumer';
+import NetworkGraph from './Components/NetworkGraph/NetworkGraph';
+
+import {Col, Container, Row, Stack} from 'react-bootstrap';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    // <Container>
+    //   <Row>
+    //     <Col>
+    //   <AddConsumer />
+    //   </Col>
+    //   <Col>
+    //   <DeleteConsumer/>
+    //   </Col>
+    //   </Row>
+    //   <Row xl={'xl-6'}>
+    //   <NetworkGraph />
+    //   </Row>
+    // </Container>
+    <Stack>
+      <Stack direction='horizontal'>
+        <AddConsumer />
+        <DeleteConsumer/>
+      </Stack>
+      <NetworkGraph />
+    </Stack>
   );
 }
 
