@@ -1,6 +1,18 @@
 import React from "react";
+import axios from "axios";
 
 const DeleteConsumer = () => {
+  const [consumer, setConsumer] = React.useState("");
+  const onSubmit = (e) => {
+    e.preventDefault();
+    const data = {
+      deviceId: consumer,
+    };
+    axios
+      .post("http://localhost:5000/remove", data)
+      .then((res) => console.log(res.data));
+  };
+
   return (
     <div className="form-container">
       <h1>Delete Consumer</h1>
@@ -13,14 +25,7 @@ const DeleteConsumer = () => {
             className="form-control"
             id="consumerId"
             placeholder="Consumer ID"
-          />
-          {/* Group Private Key */}
-          <label htmlFor="groupPrivateKey">Group Private Key</label>
-          <input
-            type="password"
-            className="form-control"
-            id="groupPrivateKey"
-            placeholder="Group Private Key"
+            onChange={(e) => setConsumer(e.target.value)}
           />
           <button type="submit" className="btn btn-primary">
             Submit
