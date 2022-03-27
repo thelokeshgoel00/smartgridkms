@@ -10,6 +10,7 @@ const AddConsumer = () => {
       deviceId: uuid(),
       deviceName: consumer,
     };
+    console.log(data);
     axios
       .post("http://localhost:5000/add", data)
       .then((res) => console.log(res.data));

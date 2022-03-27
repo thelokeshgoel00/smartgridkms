@@ -27,7 +27,7 @@ const DeleteConsumer = () => {
             placeholder="Consumer ID"
             onChange={(e) => setConsumer(e.target.value)}
           />
-          <button type="submit" className="btn btn-primary">
+          <button type="submit" className="btn btn-primary" onClick={onSubmit}>
             Submit
           </button>
         </div>
