@@ -47,23 +47,33 @@ app.get("/data",async(req,res)=>{
 app.post("/add",async(req,res)=>{
   try{
     const deviceId = req.body.deviceId;
-    const deviceName = req.body.deviceName;
+    // checking whether devideId already exists
+    const data = await Devices.find({device_id:deviceId});
 
-    // create a private_key
-    const privateKey = 1;// to be changed
+    if(data.length == 0)
+    {
 
-    // creating an object of Device
-    const device = new Devices({
-      device_id:deviceId,
-      device_name:deviceName,
-      privateKey:privateKey
-    });
+      const deviceName = req.body.deviceName;
 
-    // saving new device to database
-    const result=await device.save();
+      // create a private_key
+      const privateKey = 1;// to be changed
 
-    // return json object with status 201
-    res.status(201).json({status:201});
+      // creating an object of Device
+      const device = new Devices({
+        device_id:deviceId,
+        device_name:deviceName,
+        private_key:privateKey
+      });
+
+      // saving new device to database
+      const result=await device.save();
+
+      // return json object with status 201
+      res.status(201).json({status:201});
+    }
+    else{
+      res.status(201).json({status:400,err:"Duplicate device ID"});
+    }
   }
   catch(err)
   {
