@@ -20,7 +20,7 @@ app.use(express.urlencoded({extended:false}));
 
 app.use(cors());
 
-app.get("/",async(req,res)=>{
+app.get("/data",async(req,res)=>{
     try
   {
     const data = await Devices.find();
