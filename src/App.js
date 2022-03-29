@@ -1,27 +1,25 @@
 import './App.css';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
-import NetworkGraph from './Components/NetworkGraph/NetworkGraph';
+import { Routes, Route} from 'react-router-dom';
+import Home from './Pages/Home';
+import SendData from './Pages/SendData';
+import ReceiveData from './Pages/ReceiveData';
+import NavbarComponent from './Components/NavbarComponent/NavbarComponent';
 
-import {Col, Container, Row, Stack} from 'react-bootstrap';
-import AddDevice from './Components/AddDevice/AddDevice';
-import DeleteDevice from './Components/DeleteDevice/DeleteDevice';
+
 
 function App() {
   return (
-    <Container className='mt-4'>
-      <Row style={{columnGap : '150px'}}>
-        <Col>
-          <AddDevice />
-        </Col>
-        <Col>
-          <DeleteDevice/>
-        </Col>
-      </Row>
-      <Row xl={'xl-6'} style={{'margin-top' : '50px'}}>
-        <NetworkGraph />
-      </Row>
-    </Container>
+    <main>
+      <NavbarComponent />
+      <Routes>
+        <Route exact path="/" element={<Home />} />
+        <Route path="/send" element={<SendData />} />
+        <Route path="/receive" element={<ReceiveData />} />
+      </Routes>
+
+    </main>
   );
 }
 
