@@ -123,6 +123,7 @@ const ReceiveData = () => {
               const data = {
                 sender: "smart meter",
                 receiver: dropdownSelected,
+                privateKey: privateKey,
               };
               axios
                 .post(`${BACKEND_URL}/receive`, data)
