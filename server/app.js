@@ -190,7 +190,9 @@ app.post("/receive",async(req,res)=>{
 
     const sender = req.body.sender;
     const receiver = req.body.receiver;
-    const prvtKey = req.body.privateKey;
+    console.log(sender);
+    console.log(receiver);
+    const prvtKey = parseInt(req.body.privateKey);
 
     // Invalid private key
     if(!(prvtKey>=1&&prvtKey<=10))
@@ -198,54 +200,55 @@ app.post("/receive",async(req,res)=>{
       // return json object with status 400
       res.status(201).json({status:400,err:"Invalid private key"});
     }
-
-    // searching for latest message received by receiver
-    let message = await Messages.findOne({sender:sender,receiver:receiver});  
-    
-    const text = message.message;
-    let plainText = "";
-
-    // whether sender is a device or receiver
-    let deviceId = "";
-    if(sender==="smart meter")
-    {
-      deviceId = receiver;
-    }
     else{
-      deviceId = sender;
-    }
+      // searching for latest message received by receiver
+      const message = await Messages.findOne({sender:sender,receiver:receiver});  
+      
+      const text = message.message;
+      let plainText = "";
 
-    // get actual private key
-    const data = await Devices.findOne({device_id:deviceId});
-    const key = data.private_key;
-
-    // decrypt the message
-    if(key == prvtKey)
-    {
-      for(var i=0;i<text.length;i++)
+      // whether sender is a device or receiver
+      let deviceId = "";
+      if(sender==="smart meter")
       {
-        if(text.charAt(i) == text.charAt(i).toUpperCase()) // isUpperCase
-        {
-          //console.log(((text.charCodeAt(i)+key-65)%26 +65));
-          plainText += String.fromCharCode((text.charCodeAt(i)-key-65+26)%26 +65);
-        } 
-        else if(text.charAt(i) == text.charAt(i).toLowerCase()) // isLowerCase
-        {
-          plainText += String.fromCharCode((text.charCodeAt(i)-key-97+26)%26 +97);
-        }
-        else{
-          plainText += text.charAt(i);
-        }
-        
+        deviceId = receiver;
       }
-    }
-    else{
-      // return encrypted message
-      plainText = text;
-    }
+      else{
+        deviceId = sender;
+      }
 
-    // return json object with status 201
-    res.status(201).json({status:201,data:plainText});
+      // get actual private key
+      const data = await Devices.findOne({device_id:deviceId});
+      const key = data.private_key;
+
+      // decrypt the message
+      if(key == prvtKey)
+      {
+        for(var i=0;i<text.length;i++)
+        {
+          if(text.charAt(i) == text.charAt(i).toUpperCase()) // isUpperCase
+          {
+            //console.log(((text.charCodeAt(i)+key-65)%26 +65));
+            plainText += String.fromCharCode((text.charCodeAt(i)-key-65+26)%26 +65);
+          } 
+          else if(text.charAt(i) == text.charAt(i).toLowerCase()) // isLowerCase
+          {
+            plainText += String.fromCharCode((text.charCodeAt(i)-key-97+26)%26 +97);
+          }
+          else{
+            plainText += text.charAt(i);
+          }
+          
+        }
+      }
+      else{
+        // return encrypted message
+        plainText = text;
+      }
+
+      // return json object with status 201
+      res.status(201).json({status:201,data:plainText});
+    }
 
   }
   catch(err)
