@@ -164,6 +164,7 @@ app.post("/send",async(req,res)=>{
 
     // creating an object of Message
     const message = new Messages({
+      sender:sender,
       receiver:receiver,
       message:cypherText
     });
