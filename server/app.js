@@ -129,17 +129,18 @@ app.post("/send",async(req,res)=>{
     console.log(text);
 
     // whether sender is a device or receiver
-    let deviceName = "";
+    let deviceId = "";
     if(sender==="smart meter")
     {
-      deviceName = receiver;
+      deviceId = receiver;
     }
     else{
-      deviceName = sender;
+      deviceId = sender;
     }
 
     // get actual private key
-    const data = await Devices.findOne({device_name:deviceName});
+    const data = await Devices.findOne({device_id:deviceId});
+    
     const key = data.private_key;
 
     let cypherText = "";
@@ -204,17 +205,17 @@ app.post("/receive",async(req,res)=>{
     let plainText = "";
 
     // whether sender is a device or receiver
-    let deviceName = "";
+    let deviceId = "";
     if(sender==="smart meter")
     {
-      deviceName = receiver;
+      deviceId = receiver;
     }
     else{
-      deviceName = sender;
+      deviceId = sender;
     }
 
     // get actual private key
-    const data = await Devices.findOne({device_name:deviceName});
+    const data = await Devices.findOne({device_id:deviceId});
     const key = data.private_key;
 
     // decrypt the message
