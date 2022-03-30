@@ -124,6 +124,10 @@ app.post("/send",async(req,res)=>{
     // message to be transmitted
     const text = req.body.message;
 
+    console.log(sender);
+    console.log(receiver);
+    console.log(text);
+
     // whether sender is a device or receiver
     let deviceName = "";
     if(sender.localCompare("smart meter")==0)
@@ -138,23 +142,29 @@ app.post("/send",async(req,res)=>{
     const data = await Devices.findOne({device_name:deviceName});
     const key = data.private_key;
 
+    let cypherText = "";
+
     // encrypt message
     for(var i=0;i<text.length;i++)
     {
-      if(text[i] == text[i].toUpperCase()) // isUpperCase
+      if(text.charAt(i) == text.charAt(i).toUpperCase()) // isUpperCase
       {
-        text[i] = char(int(text[i]+key-65)%26 +65);
+        //console.log(((text.charCodeAt(i)+key-65)%26 +65));
+        cypherText += String.fromCharCode((text.charCodeAt(i)+key-65)%26 +65);
       } 
-      else
+      else if(text.charAt(i) == text.charAt(i).toLowerCase()) // isLowerCase
       {
-        text[i] = char(int(text[i]+key-97)%26 +97);
+        cypherText += String.fromCharCode((text.charCodeAt(i)+key-97)%26 +97);
+      }
+      else{
+        cypherText += text.charAt(i);
       }
     }
 
     // creating an object of Message
     const message = new Messages({
       receiver:receiver,
-      message:text
+      message:cypherText
     });
 
     // saving new device to database
@@ -173,7 +183,7 @@ app.post("/send",async(req,res)=>{
   }
 })
 
-app.post("/receiver",async(req,res)=>{
+app.post("/receive",async(req,res)=>{
   try{  
 
     const sender = req.body.sender;
@@ -188,7 +198,10 @@ app.post("/receiver",async(req,res)=>{
     }
 
     // searching for latest message received by receiver
-    let message = await Messages.findOne({sender:sender,receiver:receiver});   
+    let message = await Messages.findOne({sender:sender,receiver:receiver});  
+    
+    const text = message.message;
+    let plainText = "";
 
     // whether sender is a device or receiver
     let deviceName = "";
@@ -207,24 +220,30 @@ app.post("/receiver",async(req,res)=>{
     // decrypt the message
     if(key == prvtKey)
     {
-      for(var i=0;i<message.length;i++)
+      for(var i=0;i<text.length;i++)
       {
-        if(message[i] == message[i].toUpperCase()) // isUpperCase
+        if(text.charAt(i) == text.charAt(i).toUpperCase()) // isUpperCase
         {
-          message[i] = char(int(message[i]-key-65+26)%26 +65);
+          //console.log(((text.charCodeAt(i)+key-65)%26 +65));
+          plainText += String.fromCharCode((text.charCodeAt(i)-key-65+26)%26 +65);
         } 
-        else
+        else if(text.charAt(i) == text.charAt(i).toLowerCase()) // isLowerCase
         {
-          message[i] = char(int(message[i]-key-97+26)%26 +97);
+          plainText += String.fromCharCode((text.charCodeAt(i)-key-97+26)%26 +97);
         }
+        else{
+          plainText += text.charAt(i);
+        }
+        
       }
     }
     else{
       // return encrypted message
+      plainText = text;
     }
 
     // return json object with status 201
-    res.status(201).json({status:201,data:message});
+    res.status(201).json({status:201,data:plainText});
 
   }
   catch(err)
