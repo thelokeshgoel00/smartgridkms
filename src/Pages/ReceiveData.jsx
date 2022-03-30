@@ -51,10 +51,14 @@ const ReceiveData = () => {
               axios
                 .post(`${BACKEND_URL}/receive`, data)
                 .then((res) => {
-                  setReceivedData(res.data.message);
-                  setIsDataAvailable(true);
                   console.log(res);
-                  alert("data received successfully");
+                  if (res.data.status === 201) {
+                    setReceivedData(res.data.message);
+                    setIsDataAvailable(true);
+                    alert("data received successfully");
+                  } else {
+                    alert("error receiving data");
+                  }
                 })
                 .catch((err) => {
                   console.log(err);
@@ -119,10 +123,14 @@ const ReceiveData = () => {
               axios
                 .post(`${BACKEND_URL}/receive`, data)
                 .then((res) => {
-                  setReceivedData(res.data.message);
-                  setIsDataAvailable(true);
                   console.log(res);
-                  alert("data received successfully");
+                  if (res.data.status === 201) {
+                    setReceivedData(res.data.message);
+                    setIsDataAvailable(true);
+                    alert("data received successfully");
+                  } else {
+                    alert("error receiving data");
+                  }
                 })
                 .catch((err) => {
                   console.log(err);

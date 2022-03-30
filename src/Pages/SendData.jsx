@@ -49,7 +49,11 @@ const SendData = () => {
                 .post(`${BACKEND_URL}/send`, data)
                 .then((res) => {
                   console.log(res);
-                  alert("data sent successfully");
+                  if (res.data.status === 201) {
+                    alert("data sent successfully");
+                  } else {
+                    alert("error sending data");
+                  }
                 })
                 .catch((err) => {
                   console.log(err);
@@ -117,7 +121,11 @@ const SendData = () => {
                 .post(`${BACKEND_URL}/send`, data)
                 .then((res) => {
                   console.log(res);
-                  alert("data sent successfully");
+                  if (res.data.status === 201) {
+                    alert("data sent successfully");
+                  } else {
+                    alert("error sending data");
+                  }
                 })
                 .catch((err) => {
                   console.log(err);
