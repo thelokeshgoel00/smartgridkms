@@ -8,6 +8,8 @@ const ReceiveData = () => {
   const [receivedData, setReceivedData] = useState("");
   const [isDataAvailable, setIsDataAvailable] = useState(false);
   const [dropdownData, setDropdownData] = useState([]);
+  const [privateKey, setPrivateKey] = useState("");
+  const [dropdownSelected, setDropdownSelected] = useState("");
   useEffect(() => {
     axios
       .get(`${BACKEND_URL}/data`)
@@ -37,12 +39,47 @@ const ReceiveData = () => {
       {dataType === "meter" && (
         <>
           <h3> Smart Meter from Device</h3>
-          <form>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const data = {
+                sender: "smart meter",
+                receiver: dropdownSelected,
+
+                privateKey: privateKey,
+              };
+              axios
+                .post(`${BACKEND_URL}/receive`, data)
+                .then((res) => {
+                  setReceivedData(res.data.message);
+                  setIsDataAvailable(true);
+                  console.log(res);
+                  alert("data received successfully");
+                })
+                .catch((err) => {
+                  console.log(err);
+                  alert("error receiving data");
+                });
+            }}
+          >
             <div className="form-group" style={{ marginTop: "10px" }}>
               <label name="SelectSendingDevice">Select Sending Device</label>
-              <select className="form-control form-control-lg">
+              <select
+                className="form-control form-control-lg"
+                onChange={(e) => {
+                  setDropdownSelected(e.target.value);
+                }}
+                required
+                defaultValue={dropdownSelected}
+              >
+                <option disabled value="">
+                  {" "}
+                  -- select a device --{" "}
+                </option>
                 {dropdownData.map((item) => (
-                  <option key={item.device_id}>{item.device_name}</option>
+                  <option key={item.device_id} value={item.device_id}>
+                    {item.device_name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -54,6 +91,8 @@ const ReceiveData = () => {
                 className="form-control"
                 id="message"
                 rows="5"
+                required
+                onChange={(e) => setPrivateKey(e.target.value)}
               ></textarea>
             </div>
 
@@ -70,14 +109,47 @@ const ReceiveData = () => {
       {dataType === "device" && (
         <>
           <h3> Device from Smart Meter</h3>
-          <form>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const data = {
+                sender: "device",
+                receiver: dropdownSelected,
+              };
+              axios
+                .post(`${BACKEND_URL}/receive`, data)
+                .then((res) => {
+                  setReceivedData(res.data.message);
+                  setIsDataAvailable(true);
+                  console.log(res);
+                  alert("data received successfully");
+                })
+                .catch((err) => {
+                  console.log(err);
+                  alert("error receiving data");
+                });
+            }}
+          >
             <div className="form-group" style={{ marginTop: "10px" }}>
               <label name="SelectReceivingDevice">
                 Select Receiving Device
               </label>
-              <select className="form-control form-control-lg">
+              <select
+                className="form-control form-control-lg"
+                onChange={(e) => {
+                  setDropdownSelected(e.target.value);
+                }}
+                required
+                defaultValue={dropdownSelected}
+              >
+                <option disabled value="">
+                  {" "}
+                  -- select a device --{" "}
+                </option>
                 {dropdownData.map((item) => (
-                  <option key={item.device_id}>{item.device_name}</option>
+                  <option key={item.device_id} value={item.device_id}>
+                    {item.device_name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -89,6 +161,8 @@ const ReceiveData = () => {
                 className="form-control"
                 id="message"
                 rows="5"
+                required
+                onChange={(e) => setPrivateKey(e.target.value)}
               ></textarea>
             </div>
 
@@ -103,7 +177,7 @@ const ReceiveData = () => {
           {isDataAvailable && (
             <>
               <label> Decrypted Data </label>
-              <textarea rows="5"></textarea>
+              <textarea rows="5">{receivedData}</textarea>
             </>
           )}
         </>

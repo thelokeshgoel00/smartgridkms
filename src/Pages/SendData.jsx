@@ -38,7 +38,6 @@ const SendData = () => {
           <h3> Smart Meter To Device</h3>
           <form
             onSubmit={(e) => {
-              console.log("here");
               e.preventDefault();
               const data = {
                 sender: "smart meter",
@@ -108,7 +107,6 @@ const SendData = () => {
           <h3> Device To Smart Meter</h3>
           <form
             onSubmit={(e) => {
-              console.log("here");
               e.preventDefault();
               const data = {
                 sender: dropdownSelected,
