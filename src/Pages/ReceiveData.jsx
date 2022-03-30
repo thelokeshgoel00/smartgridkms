@@ -19,6 +19,10 @@ const ReceiveData = () => {
       .catch((err) => console.log(err));
   }, []);
 
+  useEffect(() => {
+    console.log(receivedData, isDataAvailable);
+  }, [isDataAvailable]);
+
   return (
     <Container>
       <h1>Receive Data</h1>
@@ -53,7 +57,7 @@ const ReceiveData = () => {
                 .then((res) => {
                   console.log(res);
                   if (res.data.status === 201) {
-                    setReceivedData(res.data.message);
+                    setReceivedData(res.data.data);
                     setIsDataAvailable(true);
                     alert("data received successfully");
                   } else {
@@ -117,7 +121,7 @@ const ReceiveData = () => {
             onSubmit={(e) => {
               e.preventDefault();
               const data = {
-                sender: "device",
+                sender: "smart meter",
                 receiver: dropdownSelected,
               };
               axios
@@ -125,7 +129,7 @@ const ReceiveData = () => {
                 .then((res) => {
                   console.log(res);
                   if (res.data.status === 201) {
-                    setReceivedData(res.data.message);
+                    setReceivedData(res.data.data);
                     setIsDataAvailable(true);
                     alert("data received successfully");
                   } else {
@@ -182,13 +186,15 @@ const ReceiveData = () => {
               Receive Data
             </Button>
           </form>
-          {isDataAvailable && (
-            <>
-              <label> Decrypted Data </label>
-              <textarea rows="5">{receivedData}</textarea>
-            </>
-          )}
         </>
+      )}
+      {receivedData !== "" && (
+        <div className="form-group" style={{ marginTop: "30px" }}>
+          <label> Decrypted Data </label>
+          <textarea rows="5" className="form-control">
+            {receivedData}
+          </textarea>
+        </div>
       )}
     </Container>
   );
