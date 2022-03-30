@@ -140,8 +140,11 @@ app.post("/send",async(req,res)=>{
 
     // get actual private key
     const data = await Devices.findOne({device_id:deviceId});
+
+    // removing earlier messages with same sender receiver
+    await Messages.deleteOne({sender:sender,receiver:receiver});
     
-    const key = data.private_key;
+    const key = parseInt(data.private_key);
 
     let cypherText = "";
 
@@ -219,7 +222,7 @@ app.post("/receive",async(req,res)=>{
 
       // get actual private key
       const data = await Devices.findOne({device_id:deviceId});
-      const key = data.private_key;
+      const key = parseInt(data.private_key);
 
       // decrypt the message
       if(key == prvtKey)
