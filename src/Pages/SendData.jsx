@@ -1,9 +1,19 @@
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 import { Button, Container, Stack } from "react-bootstrap";
+import { BACKEND_URL } from "../Config";
 
 const SendData = () => {
   const [dataType, setDataType] = useState("");
-
+  const [dropdownData, setDropdownData] = useState([]);
+  useEffect(() => {
+    axios
+      .get(`${BACKEND_URL}/data`)
+      .then((req, res) => {
+        setDropdownData(req.data.data);
+      })
+      .catch((err) => console.log(err));
+  }, []);
   return (
     <Container>
       <h1>Send Data</h1>
@@ -39,9 +49,10 @@ const SendData = () => {
               <label name="SelectReceivingDevice">
                 Select Receiving Device
               </label>
-              <select class="form-control form-control-lg">
-                <option>Large select</option>
-                <option>next select</option>
+              <select className="form-control form-control-lg">
+                {dropdownData.map((item) => (
+                  <option key={item.device_id}>{item.device_name}</option>
+                ))}
               </select>
             </div>
             <Button
@@ -70,9 +81,10 @@ const SendData = () => {
             </div>
             <div className="form-group" style={{ marginTop: "10px" }}>
               <label name="SelectSendingDevice">Select Sending Device</label>
-              <select class="form-control form-control-lg">
-                <option>Large select</option>
-                <option>next select</option>
+              <select className="form-control form-control-lg">
+                {dropdownData.map((item) => (
+                  <option key={item.device_id}>{item.device_name}</option>
+                ))}
               </select>
             </div>
             <Button

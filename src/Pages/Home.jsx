@@ -16,7 +16,7 @@ const Home = () => {
           <DeleteDevice />
         </Col>
       </Row>
-      <Row xl={"xl-6"} style={{ "margin-top": "50px" }}>
+      <Row xl={"xl-6"} style={{ marginTop: "50px" }}>
         <NetworkGraph />
       </Row>
     </Container>
