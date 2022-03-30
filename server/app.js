@@ -130,7 +130,7 @@ app.post("/send",async(req,res)=>{
 
     // whether sender is a device or receiver
     let deviceName = "";
-    if(sender.localCompare("smart meter")==0)
+    if(sender==="smart meter")
     {
       deviceName = receiver;
     }
@@ -205,7 +205,7 @@ app.post("/receive",async(req,res)=>{
 
     // whether sender is a device or receiver
     let deviceName = "";
-    if(sender.localCompare("smart meter")==0)
+    if(sender==="smart meter")
     {
       deviceName = receiver;
     }
