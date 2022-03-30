@@ -6,6 +6,8 @@ import { BACKEND_URL } from "../Config";
 const SendData = () => {
   const [dataType, setDataType] = useState("");
   const [dropdownData, setDropdownData] = useState([]);
+  const [dropdownSelected, setDropdownSelected] = useState("");
+  const [textareaMessage, setTextareaMessage] = useState("");
   useEffect(() => {
     axios
       .get(`${BACKEND_URL}/data`)
@@ -34,7 +36,28 @@ const SendData = () => {
       {dataType === "meter" && (
         <>
           <h3> Smart Meter To Device</h3>
-          <form>
+          <form
+            onSubmit={(e) => {
+              console.log("here");
+              e.preventDefault();
+              const data = {
+                sender: "smart meter",
+                receiver: dropdownSelected,
+                message: textareaMessage,
+              };
+              console.log(data);
+              axios
+                .post(`${BACKEND_URL}/send`, data)
+                .then((res) => {
+                  console.log(res);
+                  alert("data sent successfully");
+                })
+                .catch((err) => {
+                  console.log(err);
+                  alert("error sending data");
+                });
+            }}
+          >
             <div className="form-group">
               <label name="message" htmlFor="message">
                 Message
@@ -43,15 +66,30 @@ const SendData = () => {
                 className="form-control"
                 id="message"
                 rows="5"
+                required
+                onChange={(e) => setTextareaMessage(e.target.value)}
               ></textarea>
             </div>
             <div className="form-group" style={{ marginTop: "10px" }}>
               <label name="SelectReceivingDevice">
                 Select Receiving Device
               </label>
-              <select className="form-control form-control-lg">
+              <select
+                className="form-control form-control-lg"
+                onChange={(e) => {
+                  setDropdownSelected(e.target.value);
+                }}
+                required
+                defaultValue={dropdownSelected}
+              >
+                <option disabled value="">
+                  {" "}
+                  -- select a device --{" "}
+                </option>
                 {dropdownData.map((item) => (
-                  <option key={item.device_id}>{item.device_name}</option>
+                  <option key={item.device_id} value={item.device_id}>
+                    {item.device_name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -68,7 +106,27 @@ const SendData = () => {
       {dataType === "device" && (
         <>
           <h3> Device To Smart Meter</h3>
-          <form>
+          <form
+            onSubmit={(e) => {
+              console.log("here");
+              e.preventDefault();
+              const data = {
+                sender: dropdownSelected,
+                receiver: "smart meter",
+                message: textareaMessage,
+              };
+              axios
+                .post(`${BACKEND_URL}/send`, data)
+                .then((res) => {
+                  console.log(res);
+                  alert("data sent successfully");
+                })
+                .catch((err) => {
+                  console.log(err);
+                  alert("error sending data");
+                });
+            }}
+          >
             <div className="form-group">
               <label name="message" htmlFor="message">
                 Message
@@ -77,13 +135,28 @@ const SendData = () => {
                 className="form-control"
                 id="message"
                 rows="5"
+                required
+                onChange={(e) => setTextareaMessage(e.target.value)}
               ></textarea>
             </div>
             <div className="form-group" style={{ marginTop: "10px" }}>
               <label name="SelectSendingDevice">Select Sending Device</label>
-              <select className="form-control form-control-lg">
+              <select
+                className="form-control form-control-lg"
+                required
+                defaultValue={dropdownSelected}
+                onChange={(e) => {
+                  setDropdownSelected(e.target.value);
+                }}
+              >
+                <option disabled value="">
+                  {" "}
+                  -- select a device --{" "}
+                </option>
                 {dropdownData.map((item) => (
-                  <option key={item.device_id}>{item.device_name}</option>
+                  <option key={item.device_id} value={item.device_id}>
+                    {item.device_name}
+                  </option>
                 ))}
               </select>
             </div>
