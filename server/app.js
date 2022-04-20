@@ -146,30 +146,34 @@ app.post("/send",async(req,res)=>{
     
     const key = parseInt(data.private_key);
 
+    let x = 0.5 //seed for chaotic encryption
+
+    // control paramter random fron 2 to 10 for every msg
+    const control_param = (Math.random()*8)+2;
+    //console.log(Math.random*8);
+
     let cypherText = "";
 
     // encrypt message
     for(var i=0;i<text.length;i++)
     {
-      if(text.charAt(i) == text.charAt(i).toUpperCase()) // isUpperCase
-      {
-        //console.log(((text.charCodeAt(i)+key-65)%26 +65));
-        cypherText += String.fromCharCode((text.charCodeAt(i)+key-65)%26 +65);
-      } 
-      else if(text.charAt(i) == text.charAt(i).toLowerCase()) // isLowerCase
-      {
-        cypherText += String.fromCharCode((text.charCodeAt(i)+key-97)%26 +97);
-      }
-      else{
-        cypherText += text.charAt(i);
-      }
+
+      // chaotic encryption
+      const r = control_param;
+      x = Math.abs(Math.sin(Math.PI*Math.cos(Math.PI*r*x/2)*Math.pow(r,15) * (1-x)));
+      
+      const prvtKey = (key * x)%256;
+
+      cypherText += String.fromCharCode(text.charCodeAt(i) ^ prvtKey);
+      console.log(" control param-> "+control_param+" X-> "+x+" prvtkey-> "+prvtKey+"cypher text-> "+cypherText);
     }
 
     // creating an object of Message
     const message = new Messages({
       sender:sender,
       receiver:receiver,
-      message:cypherText
+      message:cypherText,
+      control_param:control_param
     });
 
     // saving new device to database
@@ -197,61 +201,57 @@ app.post("/receive",async(req,res)=>{
     console.log(receiver);
     const prvtKey = parseInt(req.body.privateKey);
 
-    // Invalid private key
-    if(!(prvtKey>=1&&prvtKey<=10))
+    
+    // searching for latest message received by receiver
+    const message = await Messages.findOne({sender:sender,receiver:receiver});  
+    
+    const text = message.message;
+    console.log("encrypted message-> "+text);
+    const control_param = parseFloat(message.control_param);
+    console.log(control_param);
+    let plainText = "";
+
+    // whether sender is a device or receiver
+    let deviceId = "";
+    if(sender==="smart meter")
     {
-      // return json object with status 400
-      res.status(201).json({status:400,err:"Invalid private key"});
+      deviceId = receiver;
     }
     else{
-      // searching for latest message received by receiver
-      const message = await Messages.findOne({sender:sender,receiver:receiver});  
-      
-      const text = message.message;
-      let plainText = "";
-
-      // whether sender is a device or receiver
-      let deviceId = "";
-      if(sender==="smart meter")
-      {
-        deviceId = receiver;
-      }
-      else{
-        deviceId = sender;
-      }
-
-      // get actual private key
-      const data = await Devices.findOne({device_id:deviceId});
-      const key = parseInt(data.private_key);
-
-      // decrypt the message
-      if(key == prvtKey)
-      {
-        for(var i=0;i<text.length;i++)
-        {
-          if(text.charAt(i) == text.charAt(i).toUpperCase()) // isUpperCase
-          {
-            //console.log(((text.charCodeAt(i)+key-65)%26 +65));
-            plainText += String.fromCharCode((text.charCodeAt(i)-key-65+26)%26 +65);
-          } 
-          else if(text.charAt(i) == text.charAt(i).toLowerCase()) // isLowerCase
-          {
-            plainText += String.fromCharCode((text.charCodeAt(i)-key-97+26)%26 +97);
-          }
-          else{
-            plainText += text.charAt(i);
-          }
-          
-        }
-      }
-      else{
-        // return encrypted message
-        plainText = text;
-      }
-
-      // return json object with status 201
-      res.status(201).json({status:201,data:plainText});
+      deviceId = sender;
     }
+
+    // get actual private key
+    const data = await Devices.findOne({device_id:deviceId});
+    const key = parseInt(data.private_key);
+    console.log(key,prvtKey);
+
+    // decrypt the message
+    if(key == prvtKey)
+    {
+      let x = 0.5;
+
+      // chaotic decryption
+      for(var i=0;i<text.length;i++)
+      {
+        // chaotic map
+        const r = control_param;
+        x = Math.abs(Math.sin(Math.PI*Math.cos(Math.PI*r*x/2)*Math.pow(r,15) * (1-x)));
+    
+        const prvtKey1 = (key * x)%256;
+        plainText += String.fromCharCode(text.charCodeAt(i) ^ prvtKey1);
+        console.log(plainText);
+        
+      }
+    }
+    else{
+      // return encrypted message
+      plainText = text;
+    }
+
+    // return json object with status 201
+    res.status(201).json({status:201,data:plainText});
+    
 
   }
   catch(err)
