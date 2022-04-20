@@ -47,8 +47,8 @@ const ReceiveData = () => {
             onSubmit={(e) => {
               e.preventDefault();
               const data = {
-                sender: "smart meter",
-                receiver: dropdownSelected,
+                sender: dropdownSelected,
+                receiver: "smart meter",
 
                 privateKey: privateKey,
               };
