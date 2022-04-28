@@ -146,7 +146,8 @@ app.post("/send",async(req,res)=>{
     
     const key = parseInt(data.private_key);
 
-    let x = Math.random() //seed for chaotic encryption
+    let x = Math.random(); //seed for chaotic encryption
+    const initial_seed = x;
 
     // control paramter random fron 1.5 to 10 for every msg
     const control_param = (Math.random()*8.5)+1.5;
@@ -173,7 +174,8 @@ app.post("/send",async(req,res)=>{
       sender:sender,
       receiver:receiver,
       message:cypherText,
-      control_param:control_param
+      control_param:control_param,
+      seed: initial_seed
     });
 
     // saving new device to database
@@ -208,6 +210,7 @@ app.post("/receive",async(req,res)=>{
     const text = message.message;
     console.log("encrypted message-> "+text);
     const control_param = parseFloat(message.control_param);
+    const initial_seed = parseFloat(message.seed);
     console.log(control_param);
     let plainText = "";
 
@@ -229,7 +232,7 @@ app.post("/receive",async(req,res)=>{
     // decrypt the message
     if(key == prvtKey)
     {
-      let x = 0.5;
+      let x = initial_seed;
 
       // chaotic decryption
       for(var i=0;i<text.length;i++)
