@@ -146,10 +146,10 @@ app.post("/send",async(req,res)=>{
     
     const key = parseInt(data.private_key);
 
-    let x = 0.5 //seed for chaotic encryption
+    let x = Math.random() //seed for chaotic encryption
 
-    // control paramter random fron 2 to 10 for every msg
-    const control_param = (Math.random()*8)+2;
+    // control paramter random fron 1.5 to 10 for every msg
+    const control_param = (Math.random()*8.5)+1.5;
     //console.log(Math.random*8);
 
     let cypherText = "";
@@ -165,7 +165,7 @@ app.post("/send",async(req,res)=>{
       const prvtKey = (key * x)%256;
 
       cypherText += String.fromCharCode(text.charCodeAt(i) ^ prvtKey);
-      console.log(" control param-> "+control_param+" X-> "+x+" prvtkey-> "+prvtKey+"cypher text-> "+cypherText);
+      //console.log(" control param-> "+control_param+" X-> "+x+" prvtkey-> "+prvtKey+"cypher text-> "+cypherText);
     }
 
     // creating an object of Message
