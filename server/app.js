@@ -9,6 +9,8 @@ require("./db/connection");
 app.use(express.json({limit:'50mb'}));
 
 const Devices=require("./models/device");
+const Messages=require("./models/message");
+const { parse } = require("path");
 
 app.use(express.urlencoded({extended:false}));
 
@@ -19,6 +21,11 @@ app.use(express.urlencoded({extended:false}));
 // }).catch((err)=>{console.log(err);});
 
 app.use(cors());
+
+// app.get("/",async(req,res)=>{
+//   console.log(Math.floor((Math.random() * 10) + 1));
+//   res.end();
+// })
 
 app.get("/data",async(req,res)=>{
     try
@@ -55,9 +62,11 @@ app.post("/add",async(req,res)=>{
 
       const deviceName = req.body.deviceName;
 
-      // create a private_key
-      const privateKey = 1;// to be changed
+      const genRanHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
 
+      // create a private_key
+      const privateKey = genRanHex(32); // 128 bit
+      
       // creating an object of Device
       const device = new Devices({
         device_id:deviceId,
@@ -72,12 +81,14 @@ app.post("/add",async(req,res)=>{
       res.status(201).json({status:201});
     }
     else{
+
       res.status(201).json({status:400,err:"Duplicate device ID"});
     }
   }
   catch(err)
   {
-    console.log(err);
+    console.log(err); 
+
     // return json object with status 400
     res.status(201).json({status:400});
   }
@@ -104,6 +115,160 @@ app.post("/remove",async (req,res)=>{
     
     // return json object with status 400
     res.status(201).json({status:400});
+  }
+})
+
+app.post("/send",async(req,res)=>{
+  try{
+    // id of sender
+    const sender = req.body.sender;
+    // receiver id
+    const receiver = req.body.receiver;
+    // message to be transmitted
+    const text = req.body.message;
+
+    console.log(sender);
+    console.log(receiver);
+    console.log(text);
+
+    // whether sender is a device or receiver
+    let deviceId = "";
+    if(sender==="smart meter")
+    {
+      deviceId = receiver;
+    }
+    else{
+      deviceId = sender;
+    }
+
+    // get actual private key
+    const data = await Devices.findOne({device_id:deviceId});
+
+    // removing earlier messages with same sender receiver
+    await Messages.deleteOne({sender:sender,receiver:receiver});
+    
+    const secretKey = (data.private_key); // from TTP
+    let key = parseInt("0x"+secretKey.substring(0,8));
+    //console.log(secretKey,key,typeof(key));
+    let k1 =  parseInt("0x"+secretKey.substring(8,14));
+    let k2 = parseInt("0x"+secretKey.substring(14,20));
+    let k3 = parseInt("0x"+secretKey.substring(20,26))
+    let key1 = k1^k2^k3;
+    
+    let x = key1/parseInt("0x"+"eeeeee"); //seed for chaotic encryption
+    const initial_seed = x;
+    const key2 = parseInt("0x"+secretKey.substring(26,32));
+    // control paramter random fron 1.5 to 10 for every msg
+    const control_param = ((key2/parseInt("0x"+"eeeeee"))*8.5)+1.5;
+    //console.log(Math.random*8);
+
+    let cypherText = "";
+
+    // encrypt message
+    for(var i=0;i<text.length;i++)
+    {
+
+      // chaotic encryption
+      const r = control_param;
+      x = Math.abs(Math.sin(Math.PI*Math.cos(Math.PI*r*x/2)*Math.pow(r,15) * (1-x)));
+      
+      const prvtKey = (key * x)%256;
+
+      cypherText += String.fromCharCode(text.charCodeAt(i) ^ prvtKey);
+      //console.log(" control param-> "+control_param+" X-> "+x+" prvtkey-> "+prvtKey+"cypher text-> "+cypherText);
+    }
+
+    // creating an object of Message
+    const message = new Messages({
+      sender:sender,
+      receiver:receiver,
+      message:cypherText
+    });
+
+    // saving new device to database
+    const result=await message.save();
+
+    // return json object with status 201
+    res.status(201).json({status:201});
+
+  }
+  catch(err)
+  {
+    console.log(err);
+    
+    // return json object with status 400
+    res.status(201).json({status:400});
+  }
+})
+
+app.post("/receive",async(req,res)=>{
+  try{  
+
+    const sender = req.body.sender;
+    const receiver = req.body.receiver;
+    console.log(sender);
+    console.log(receiver);
+    const secretKey = req.body.privateKey;
+    
+    let prvtKey = parseInt("0x"+secretKey.substring(0,8));
+    //console.log(secretKey,key,typeof(key));
+    let k1 =  parseInt("0x"+secretKey.substring(8,14));
+    let k2 = parseInt("0x"+secretKey.substring(14,20));
+    let k3 = parseInt("0x"+secretKey.substring(20,26));
+    let key1 = k1^k2^k3;
+    
+    let initial_seed = key1/parseInt("0x"+"eeeeee"); //seed for chaotic encryption
+    const key2 = parseInt("0x"+secretKey.substring(26,32));
+    // control paramter random fron 1.5 to 10 for every msg
+    const control_param = ((key2/parseInt("0x"+"eeeeee"))*8.5)+1.5;
+    
+    // searching for latest message received by receiver
+    const message = await Messages.findOne({sender:sender,receiver:receiver});  
+    
+    const text = message.message;
+    console.log("encrypted message-> "+text);
+    
+    let plainText = "";
+
+    // whether sender is a device or receiver
+    let deviceId = "";
+    if(sender==="smart meter")
+    {
+      deviceId = receiver;
+    }
+    else{
+      deviceId = sender;
+    }
+
+    // decrypt the message
+    
+    let x = initial_seed;
+
+    // chaotic decryption
+    for(var i=0;i<text.length;i++)
+    {
+      // chaotic map
+      const r = control_param;
+      x = Math.abs(Math.sin(Math.PI*Math.cos(Math.PI*r*x/2)*Math.pow(r,15) * (1-x)));
+  
+      const prvtKey1 = (prvtKey * x)%256;
+      plainText += String.fromCharCode(text.charCodeAt(i) ^ prvtKey1);
+      console.log(plainText);
+      
+    }
+    
+
+    // return json object with status 201
+    res.status(201).json({status:201,data:plainText});
+    
+
+  }
+  catch(err)
+  {
+    console.log(err);
+    
+    // return json object with status 400
+    res.status(400).json({status:400});
   }
 })
 

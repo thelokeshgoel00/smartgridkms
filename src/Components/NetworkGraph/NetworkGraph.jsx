@@ -42,22 +42,16 @@ const orgChart = {
 
 const NetworkGraph = () => {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
     axios
       .get(`${BACKEND_URL}/data`)
       .then((req, res) => {
         setData(req.data.data);
-        setLoading(false);
       })
       .catch((err) => console.log(err));
   }, []);
 
-  useEffect(() => {
-    console.log(data);
-  }, [data]);
   return (
     <Stack>
       <h1>Network Devices</h1>
@@ -71,7 +65,6 @@ const NetworkGraph = () => {
         </thead>
         <tbody>
           {data.map((item) => {
-            console.log(item);
             return (
               <tr key={item.device_id}>
                 <td>{`${item.device_id}`}</td>
