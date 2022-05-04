@@ -10,6 +10,7 @@ app.use(express.json({limit:'50mb'}));
 
 const Devices=require("./models/device");
 const Messages=require("./models/message");
+const { parse } = require("path");
 
 app.use(express.urlencoded({extended:false}));
 
@@ -61,9 +62,11 @@ app.post("/add",async(req,res)=>{
 
       const deviceName = req.body.deviceName;
 
-      // create a private_key
-      const privateKey = Math.floor((Math.random() * 10) + 1);// to be changed
+      const genRanHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
 
+      // create a private_key
+      const privateKey = genRanHex(32); // 128 bit
+      
       // creating an object of Device
       const device = new Devices({
         device_id:deviceId,
@@ -144,13 +147,19 @@ app.post("/send",async(req,res)=>{
     // removing earlier messages with same sender receiver
     await Messages.deleteOne({sender:sender,receiver:receiver});
     
-    const key = parseInt(data.private_key);
-
-    let x = Math.random(); //seed for chaotic encryption
+    const secretKey = (data.private_key); // from TTP
+    let key = parseInt("0x"+secretKey.substring(0,8));
+    //console.log(secretKey,key,typeof(key));
+    let k1 =  parseInt("0x"+secretKey.substring(8,14));
+    let k2 = parseInt("0x"+secretKey.substring(14,20));
+    let k3 = parseInt("0x"+secretKey.substring(20,26))
+    let key1 = k1^k2^k3;
+    
+    let x = key1/parseInt("0x"+"eeeeee"); //seed for chaotic encryption
     const initial_seed = x;
-
+    const key2 = parseInt("0x"+secretKey.substring(26,32));
     // control paramter random fron 1.5 to 10 for every msg
-    const control_param = (Math.random()*8.5)+1.5;
+    const control_param = ((key2/parseInt("0x"+"eeeeee"))*8.5)+1.5;
     //console.log(Math.random*8);
 
     let cypherText = "";
@@ -173,9 +182,7 @@ app.post("/send",async(req,res)=>{
     const message = new Messages({
       sender:sender,
       receiver:receiver,
-      message:cypherText,
-      control_param:control_param,
-      seed: initial_seed
+      message:cypherText
     });
 
     // saving new device to database
@@ -201,17 +208,26 @@ app.post("/receive",async(req,res)=>{
     const receiver = req.body.receiver;
     console.log(sender);
     console.log(receiver);
-    const prvtKey = parseInt(req.body.privateKey);
-
+    const secretKey = req.body.privateKey;
+    
+    let prvtKey = parseInt("0x"+secretKey.substring(0,8));
+    //console.log(secretKey,key,typeof(key));
+    let k1 =  parseInt("0x"+secretKey.substring(8,14));
+    let k2 = parseInt("0x"+secretKey.substring(14,20));
+    let k3 = parseInt("0x"+secretKey.substring(20,26));
+    let key1 = k1^k2^k3;
+    
+    let initial_seed = key1/parseInt("0x"+"eeeeee"); //seed for chaotic encryption
+    const key2 = parseInt("0x"+secretKey.substring(26,32));
+    // control paramter random fron 1.5 to 10 for every msg
+    const control_param = ((key2/parseInt("0x"+"eeeeee"))*8.5)+1.5;
     
     // searching for latest message received by receiver
     const message = await Messages.findOne({sender:sender,receiver:receiver});  
     
     const text = message.message;
     console.log("encrypted message-> "+text);
-    const control_param = parseFloat(message.control_param);
-    const initial_seed = parseFloat(message.seed);
-    console.log(control_param);
+    
     let plainText = "";
 
     // whether sender is a device or receiver
@@ -224,33 +240,23 @@ app.post("/receive",async(req,res)=>{
       deviceId = sender;
     }
 
-    // get actual private key
-    const data = await Devices.findOne({device_id:deviceId});
-    const key = parseInt(data.private_key);
-    console.log(key,prvtKey);
-
     // decrypt the message
-    if(key == prvtKey)
-    {
-      let x = initial_seed;
-
-      // chaotic decryption
-      for(var i=0;i<text.length;i++)
-      {
-        // chaotic map
-        const r = control_param;
-        x = Math.abs(Math.sin(Math.PI*Math.cos(Math.PI*r*x/2)*Math.pow(r,15) * (1-x)));
     
-        const prvtKey1 = (key * x)%256;
-        plainText += String.fromCharCode(text.charCodeAt(i) ^ prvtKey1);
-        console.log(plainText);
-        
-      }
+    let x = initial_seed;
+
+    // chaotic decryption
+    for(var i=0;i<text.length;i++)
+    {
+      // chaotic map
+      const r = control_param;
+      x = Math.abs(Math.sin(Math.PI*Math.cos(Math.PI*r*x/2)*Math.pow(r,15) * (1-x)));
+  
+      const prvtKey1 = (prvtKey * x)%256;
+      plainText += String.fromCharCode(text.charCodeAt(i) ^ prvtKey1);
+      console.log(plainText);
+      
     }
-    else{
-      // return encrypted message
-      plainText = text;
-    }
+    
 
     // return json object with status 201
     res.status(201).json({status:201,data:plainText});
@@ -262,7 +268,7 @@ app.post("/receive",async(req,res)=>{
     console.log(err);
     
     // return json object with status 400
-    res.status(201).json({status:400});
+    res.status(400).json({status:400});
   }
 })
 

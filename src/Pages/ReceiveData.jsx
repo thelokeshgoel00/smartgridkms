@@ -21,7 +21,7 @@ const ReceiveData = () => {
 
   useEffect(() => {
     console.log(receivedData, isDataAvailable);
-  }, [isDataAvailable]);
+  }, [receivedData]);
 
   return (
     <Container>
@@ -57,7 +57,8 @@ const ReceiveData = () => {
                 .then((res) => {
                   console.log(res);
                   if (res.data.status === 201) {
-                    setReceivedData(res.data.data);
+                    setIsDataAvailable(false);
+                    setReceivedData(res.data.data.slice());
                     setIsDataAvailable(true);
                     alert("data received successfully");
                   } else {
@@ -130,7 +131,8 @@ const ReceiveData = () => {
                 .then((res) => {
                   console.log(res);
                   if (res.data.status === 201) {
-                    setReceivedData(res.data.data);
+                    setIsDataAvailable(false);
+                    setReceivedData(res.data.data.slice());
                     setIsDataAvailable(true);
                     alert("data received successfully");
                   } else {
@@ -189,7 +191,7 @@ const ReceiveData = () => {
           </form>
         </>
       )}
-      {receivedData !== "" && (
+      {isDataAvailable && (
         <div className="form-group" style={{ marginTop: "30px" }}>
           <label> Decrypted Data </label>
           <textarea rows="5" className="form-control">

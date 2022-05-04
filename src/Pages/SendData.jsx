@@ -51,6 +51,8 @@ const SendData = () => {
                   console.log(res);
                   if (res.data.status === 201) {
                     alert("data sent successfully");
+                    
+                    window.location.reload();
                   } else {
                     alert("error sending data");
                   }
@@ -123,6 +125,7 @@ const SendData = () => {
                   console.log(res);
                   if (res.data.status === 201) {
                     alert("data sent successfully");
+                    window.location.reload();
                   } else {
                     alert("error sending data");
                   }

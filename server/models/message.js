@@ -15,16 +15,7 @@ const messageSchema=new mongoose.Schema({
     message:{
       type: String,
       required: true
-    },
-    control_param:{
-      type: String,
-      required: true
-    },
-    seed:{
-      type: String,
-      required: true
-    }
-      
+    } 
 
 })
 
