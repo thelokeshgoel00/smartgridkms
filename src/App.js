@@ -13,7 +13,7 @@ function App() {
   return (
     <main>
       <NavbarComponent />
-      <Routes>
+      <Routes basename="/">
         <Route exact path="/" element={<Home />} />
         <Route path="/send" element={<SendData />} />
         <Route path="/receive" element={<ReceiveData />} />
