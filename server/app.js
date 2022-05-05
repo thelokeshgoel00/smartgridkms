@@ -158,11 +158,11 @@ app.post("/send",async(req,res)=>{
     let k3 = parseInt("0x"+secretKey.substring(20,26))
     let key1 = k1^k2^k3;
     
-    let x = key1/parseInt("0x"+"eeeeee"); //seed for chaotic encryption
+    let x = key1/parseInt("0x"+"ffffff"); //seed for chaotic encryption
     const initial_seed = x;
     const key2 = parseInt("0x"+secretKey.substring(26,32));
     // control paramter random fron 1.5 to 10 for every msg
-    const control_param = ((key2/parseInt("0x"+"eeeeee"))*8.5)+1.5;
+    const control_param = ((key2/parseInt("0x"+"ffffff"))*8.5)+1.5;
     //console.log(Math.random*8);
 
     let cypherText = "";
@@ -220,10 +220,10 @@ app.post("/receive",async(req,res)=>{
     let k3 = parseInt("0x"+secretKey.substring(20,26));
     let key1 = k1^k2^k3;
     
-    let initial_seed = key1/parseInt("0x"+"eeeeee"); //seed for chaotic encryption
+    let initial_seed = key1/parseInt("0x"+"ffffff"); //seed for chaotic encryption
     const key2 = parseInt("0x"+secretKey.substring(26,32));
     // control paramter random fron 1.5 to 10 for every msg
-    const control_param = ((key2/parseInt("0x"+"eeeeee"))*8.5)+1.5;
+    const control_param = ((key2/parseInt("0x"+"ffffff"))*8.5)+1.5;
     
     // searching for latest message received by receiver
     const message = await Messages.findOne({sender:sender,receiver:receiver});  
